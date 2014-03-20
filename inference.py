@@ -213,14 +213,6 @@ class ExactInference(InferenceModule):
       positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
       for newPos, probability in positionDist.items():
         newBeliefs[newPos] += probability * self.beliefs[oldPos]
-    """
-    positionDist = {}
-    for oldPos in self.legalPositions:
-      positionDist[oldPos] = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
-    for p in self.legalPositions:
-      for oldPos in self.legalPositions:
-        newBeliefs[p] += positionDist[oldPos][p] * self.beliefs[oldPos]
-    """
     self.beliefs = newBeliefs
 
   def getBeliefDistribution(self):
