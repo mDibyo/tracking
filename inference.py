@@ -278,32 +278,25 @@ class ParticleFilter(InferenceModule):
     You may also want to use util.manhattanDistance to calculate the distance
     between a particle and pacman's position.
     """
-
     noisyDistance = observation
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
     beliefDistribution = self.getBeliefDistribution()
     allPossible = util.Counter()
-    # for position, value in beliefDistribution.items():
-    #   beliefDistribution[position] = value * emissionModel
     if noisyDistance == None:
       for counter in range(self.numParticles):
         self.particles[counter] = self.getJailPosition()
     else:
       for p in self.legalPositions:
         trueDistance = util.manhattanDistance(p, pacmanPosition)
-        # if emissionModel[trueDistance] > 0:
-        allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
+        if emissionModel[trueDistance] > 0:
+          allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
       allPossible.normalize()
       if allPossible.totalCount() == 0:
         self.initializeUniformly(gameState)
       else:
         for counter in range(self.numParticles):
           self.particles[counter] = util.sample(allPossible)
-      # self.particles = util.nSample(allPossible.values(), self.legalPositions, self.numParticles)
-
-
-    # util.raiseNotDefined()
 
   def elapseTime(self, gameState):
     """
@@ -320,8 +313,28 @@ class ParticleFilter(InferenceModule):
     util.sample(Counter object) is a helper method to generate a sample from a
     belief distribution
     """
-    "*** YOUR CODE HERE ***"
+    beliefDistribution = self.getBeliefDistribution()
+    newBeliefs = util.Counter()
+    for oldPos in self.legalPositions:
+      positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+      for newPos, probability in positionDist.items():
+        newBeliefs[newPos] += probability * beliefDistribution[oldPos]
+    newBeliefs.normalize()
+    if newBeliefs.totalCount() == 0:
+      self.initializeUniformly(gameState)
+    else:
+      for counter in range(self.numParticles):
+        self.particles[counter] = util.sample(newBeliefs)
+
+    """
+    newBeliefs = util.Counter()
+    for oldPos in self.legalPositions:
+      positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
+      for newPos, probability in positionDist.items():
+        newBeliefs[newPos] += probability * self.beliefs[oldPos]
+    self.beliefs = newBeliefs
     util.raiseNotDefined()
+    """
 
   def getBeliefDistribution(self):
     """
