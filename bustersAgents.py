@@ -13,6 +13,7 @@
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
+import random
 import util
 from game import Agent
 from game import Directions
@@ -112,7 +113,6 @@ class BustersKeyboardAgent(BustersAgent, KeyboardAgent):
 from distanceCalculator import Distancer
 from game import Actions
 from game import Directions
-from functools import reduce
 
 class GreedyBustersAgent(BustersAgent):
   "An agent that charges the closest ghost."
@@ -157,17 +157,16 @@ class GreedyBustersAgent(BustersAgent):
     livingGhostPositionDistributions = [beliefs for i,beliefs
                                         in enumerate(self.ghostBeliefs)
                                         if livingGhosts[i+1]]
-    # print livingGhostPositionDistributions
     # Find most likely position of ghosts and their distances
-
     mostLikelyGhostPositions = []
     for index in range(len(livingGhostPositionDistributions)):
       highestProb, mostProbPosition = 0, None
-      for position, prob in livingGhostPositionDistributions[index]:
+      for position, prob in livingGhostPositionDistributions[index].items():
         if prob > highestProb:
           highestProb, mostProbPosition = prob, position
-      mostLikelyGhostPositions.append(mostProbPosition,
-                                      self.distancer.getDistance(mostProbPosition, pacmanPosition))
+      mostLikelyGhostPositions.append((mostProbPosition,
+                                        self.distancer.getDistance(mostProbPosition, pacmanPosition)))
+    # print mostLikelyGhostPositions
     # Find distance and position of the closest ghost
     leastDistance = float('inf')
     closestPosition = None
@@ -175,16 +174,23 @@ class GreedyBustersAgent(BustersAgent):
       if distance < leastDistance:
         leastDistance = distance
         closestPosition = ghostPosition
+    # print closestPosition, pacmanPosition, leastDistance
     # Find best action
     bestNewDistance = float('inf')
-    bestAction = None
+    bestAction = []
     for action in legal:
       successorPosition = Actions.getSuccessor(pacmanPosition, action)
-      newDistance = self.distancer.getDistance(leastDistance, pacmanPosition)
+      newDistance = self.distancer.getDistance(closestPosition, successorPosition)
+      # print pacmanPosition, action, successorPosition, newDistance
       if newDistance < bestNewDistance:
         bestNewDistance = newDistance
-        bestAction = action
-    return action
+        bestAction = [action]
+      elif newDistance == bestNewDistance:
+        bestAction.append(action)
+    # print "======="
+    # print bestAction
+    # print oneAction
+    return random.choice(bestAction)
     # mostLikelyGhostPositions = [reduce(lambda (pos1, prob1), (pos2, prob2): pos1 if prob1 > prob2 else pos2, [item for item in ghost.items]) for ghost in livingGhostPositionDistributions]
     # Find distance and position of closest ghost
     # closestGhostPosition = reduce(lambda (pos1, dist1), (pos2, dist2): pos1 if dist1z < dist2 else pos2, map(lambda pos: (pos, self.distancer.getDistance(pos, pacmanPosition)), mostLikelyGhostPositions))

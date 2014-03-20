@@ -144,9 +144,6 @@ class ExactInference(InferenceModule):
     noisyDistance = observation
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
-    # Replace this code with a correct observation update
-    # Be sure to handle the "jail" edge case where the ghost is eaten
-    # and noisyDistance is None
     allPossible = util.Counter()
     if noisyDistance != None:
       for p in self.legalPositions:
@@ -208,7 +205,6 @@ class ExactInference(InferenceModule):
     combine to give us a belief distribution over new positions after a time update from a particular position
     """
     newBeliefs = util.Counter()
-    # """
     for oldPos in self.legalPositions:
       positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
       for newPos, probability in positionDist.items():
