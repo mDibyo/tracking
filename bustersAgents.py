@@ -67,7 +67,7 @@ class BustersAgent:
     self.elapseTimeEnable = elapseTimeEnable
 
   def registerInitialState(self, gameState):
-      "Initializes beliefs and inference modules"
+    "Initializes beliefs and inference modules"
     import __main__
     self.display = __main__._display
     for inference in self.inferenceModules: inference.initialize(gameState)
@@ -112,6 +112,7 @@ class BustersKeyboardAgent(BustersAgent, KeyboardAgent):
 from distanceCalculator import Distancer
 from game import Actions
 from game import Directions
+from functools import reduce
 
 class GreedyBustersAgent(BustersAgent):
   "An agent that charges the closest ghost."
@@ -156,5 +157,19 @@ class GreedyBustersAgent(BustersAgent):
     livingGhostPositionDistributions = [beliefs for i,beliefs
                                         in enumerate(self.ghostBeliefs)
                                         if livingGhosts[i+1]]
-    
-    util.raiseNotDefined()
+    # print livingGhostPositionDistributions
+    # Find most likely position of ghosts and their distances
+
+    # mostLikelyGhostPositions = []
+    # for index in len(livingGhostPositionDistributions):
+    #   highestProb, mostProbPosition = 0, None
+    #   for position, prob in livingGhostPositionDistributions[index]:
+    #     if prob > highestProb:
+    #       highestProb, mostProbPosition = prob, position
+    #   mostLikelyGhostPositions[index] = mostProbPosition,
+    #                                     self.distancer.getDistance(mostProbPosition, pacmanPosition)
+    mostLikelyGhostPositions = [reduce(lambda (pos1, prob1), (pos2, prob2): pos1 if prob1 > prob2 else pos2, ghost) for ghost in livingGhostPositionDistributions]
+    # Find distance and position of closest ghost
+    closestGhostPosition = reduce(lambda (pos1, dist1), (pos2, dist2): pos1 if dist1 < dist2 else pos2, map(lambda pos: (pos, self.distancer.getDistance(pos, pacmanPosition)), mostLikelyGhostPositions))
+    # Find best action and return
+    return bestAction = reduce(lambda (action1, dist1), (action2, dist2): action1 if dist1 < dist2 else action2, map(lambda action: self.distancer.getDistance(Action.getSuccessor(pacmanPosition, action), closestGhostPosition), legal))
