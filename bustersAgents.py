@@ -168,8 +168,8 @@ class GreedyBustersAgent(BustersAgent):
     #       highestProb, mostProbPosition = prob, position
     #   mostLikelyGhostPositions[index] = mostProbPosition,
     #                                     self.distancer.getDistance(mostProbPosition, pacmanPosition)
-    mostLikelyGhostPositions = [reduce(lambda (pos1, prob1), (pos2, prob2): pos1 if prob1 > prob2 else pos2, ghost) for ghost in livingGhostPositionDistributions]
+    # mostLikelyGhostPositions = [reduce(lambda (pos1, prob1), (pos2, prob2): pos1 if prob1 > prob2 else pos2, [item for item in ghost.items]) for ghost in livingGhostPositionDistributions]
     # Find distance and position of closest ghost
     closestGhostPosition = reduce(lambda (pos1, dist1), (pos2, dist2): pos1 if dist1 < dist2 else pos2, map(lambda pos: (pos, self.distancer.getDistance(pos, pacmanPosition)), mostLikelyGhostPositions))
     # Find best action and return
-    return bestAction = reduce(lambda (action1, dist1), (action2, dist2): action1 if dist1 < dist2 else action2, map(lambda action: self.distancer.getDistance(Action.getSuccessor(pacmanPosition, action), closestGhostPosition), legal))
+    return reduce(lambda (action1, dist1), (action2, dist2): action1 if dist1 < dist2 else action2, map(lambda action: self.distancer.getDistance(Action.getSuccessor(pacmanPosition, action), closestGhostPosition), legal))
