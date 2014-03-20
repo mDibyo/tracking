@@ -313,6 +313,7 @@ class ParticleFilter(InferenceModule):
     util.sample(Counter object) is a helper method to generate a sample from a
     belief distribution
     """
+    """
     beliefDistribution = self.getBeliefDistribution()
     newBeliefs = util.Counter()
     for oldPos in self.legalPositions:
@@ -321,6 +322,9 @@ class ParticleFilter(InferenceModule):
         newBeliefs[newPos] += probability * beliefDistribution[oldPos]
     for counter in range(self.numParticles):
       self.particles[counter] = util.sample(newBeliefs)
+    """
+    for counter in range(self.numParticles):
+      self.particles[counter] = util.sample(self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[counter])))
 
   def getBeliefDistribution(self):
     """
@@ -396,7 +400,7 @@ class JointParticleFilter:
 
     """
     self.particles = []
-    possiblePositions = product(self.legalPositions, repeat=self.numGhosts)
+    possiblePositions = list(product(self.legalPositions, repeat=self.numGhosts))
     for counter in range(self.numParticles):
       self.particles.append(random.choice(possiblePositions))
 
@@ -443,7 +447,7 @@ class JointParticleFilter:
     noisyDistances = gameState.getNoisyGhostDistances()
     if len(noisyDistances) < self.numGhosts: return
     emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
-    beliefDistributions = getBeliefDistribution()
+    beliefDistributions = self.getBeliefDistribution()
     allPossibles = []
     totalCount = 0
     for ghostIndex in range(self.numGhosts):
