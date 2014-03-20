@@ -283,6 +283,7 @@ class ParticleFilter(InferenceModule):
     emissionModel = busters.getObservationDistribution(noisyDistance)
     pacmanPosition = gameState.getPacmanPosition()
     beliefDistribution = self.getBeliefDistribution()
+    allPossible = util.Counter()
     # for position, value in beliefDistribution.items():
     #   beliefDistribution[position] = value * emissionModel
     if noisyDistance == None:
@@ -291,26 +292,15 @@ class ParticleFilter(InferenceModule):
     else:
       for p in self.legalPositions:
         trueDistance = util.manhattanDistance(p, pacmanPosition)
-        if emissionModel[trueDistance] > 0:
-          allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
+        # if emissionModel[trueDistance] > 0:
+        allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
       allPossible.normalize()
-      self.particles = util.nSample(allPossible, legalPositions, self.numParticles)
-    if allPossible.totalCount() == 0:
-      self.initializeUniformly(gameState)          
-
-    """
-    allPossible = util.Counter()
-    if noisyDistance != None:
-      for p in self.legalPositions:
-        trueDistance = util.manhattanDistance(p, pacmanPosition)
-        if emissionModel[trueDistance] > 0:
-          allPossible[p] = emissionModel[trueDistance] * self.beliefs[p]
-    # handling of jail edge case
-    else:
-      allPossible[self.getJailPosition()] = 1.0
-    allPossible.normalize()
-    self.beliefs = allPossible
-    """
+      if allPossible.totalCount() == 0:
+        self.initializeUniformly(gameState)
+      else:
+        for counter in range(self.numParticles):
+          self.particles[counter] = util.sample(allPossible)
+      # self.particles = util.nSample(allPossible.values(), self.legalPositions, self.numParticles)
 
 
     # util.raiseNotDefined()
