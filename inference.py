@@ -280,19 +280,18 @@ class ParticleFilter(InferenceModule):
     between a particle and pacman's position.
     """
     noisyDistance = observation
-    emissionModel = busters.getObservationDistribution(noisyDistance)
-    pacmanPosition = gameState.getPacmanPosition()
-    beliefDistribution = self.getBeliefDistribution()
-    allPossible = util.Counter()
     if noisyDistance == None:
       for counter in range(self.numParticles):
         self.particles[counter] = self.getJailPosition()
     else:
+      emissionModel = busters.getObservationDistribution(noisyDistance)
+      pacmanPosition = gameState.getPacmanPosition()
+      beliefDistribution = self.getBeliefDistribution()
+      allPossible = util.Counter()
       for p in self.legalPositions:
         trueDistance = util.manhattanDistance(p, pacmanPosition)
         if emissionModel[trueDistance] > 0:
           allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
-      allPossible.normalize()
       if allPossible.totalCount() == 0:
         self.initializeUniformly(gameState)
       else:
@@ -320,10 +319,6 @@ class ParticleFilter(InferenceModule):
       positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
       for newPos, probability in positionDist.items():
         newBeliefs[newPos] += probability * beliefDistribution[oldPos]
-    # newBeliefs.normalize()
-    # if newBeliefs.totalCount() == 0:
-    #   self.initializeUniformly(gameState)
-    # else:
     for counter in range(self.numParticles):
       self.particles[counter] = util.sample(newBeliefs)
 
@@ -345,8 +340,7 @@ class ParticleFilter(InferenceModule):
     """
     beliefDistribution = util.Counter()
     for particle in self.particles:
-      beliefDistribution[particle] += 1
-    beliefDistribution.normalize()
+      beliefDistribution[particle] += 1.0 / self.numParticles
     return beliefDistribution
 
 class MarginalInference(InferenceModule):
@@ -412,7 +406,7 @@ class JointParticleFilter:
 
     """
     self.particles = []
-    possiblePositions = product(self.legalPositions, len(self.ghostAgents))
+    possiblePositions = product(self.legalPositions, repeat=len(self.ghostAgents))
     for counter in range(self.numParticles):
       self.particles.append(random.choice(possiblePositions))
 
@@ -520,8 +514,13 @@ class JointParticleFilter:
     self.particles = newParticles
 
   def getBeliefDistribution(self):
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    beliefDistribution = []
+    for ghostIndex in range(len(self.ghostAgents)):
+      distribution = util.Counter()
+      for particle in self.particles[ghostIndex]:
+        distribution[particle] += 1.0 / self.numParticles
+      beliefDistribution.append(distribution)
+    return beliefDistribution
         
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
