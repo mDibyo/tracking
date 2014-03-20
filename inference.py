@@ -18,6 +18,7 @@ import util
 import random
 import busters
 import game
+from itertools import product
 
 class InferenceModule:
   """
@@ -319,12 +320,12 @@ class ParticleFilter(InferenceModule):
       positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
       for newPos, probability in positionDist.items():
         newBeliefs[newPos] += probability * beliefDistribution[oldPos]
-    newBeliefs.normalize()
-    if newBeliefs.totalCount() == 0:
-      self.initializeUniformly(gameState)
-    else:
-      for counter in range(self.numParticles):
-        self.particles[counter] = util.sample(newBeliefs)
+    # newBeliefs.normalize()
+    # if newBeliefs.totalCount() == 0:
+    #   self.initializeUniformly(gameState)
+    # else:
+    for counter in range(self.numParticles):
+      self.particles[counter] = util.sample(newBeliefs)
 
     """
     newBeliefs = util.Counter()
@@ -410,7 +411,10 @@ class JointParticleFilter:
         and will produce errors
 
     """
-    "*** YOUR CODE HERE ***"
+    self.particles = []
+    possiblePositions = product(self.legalPositions, len(self.ghostAgents))
+    for counter in range(self.numParticles):
+      self.particles.append(random.choice(possiblePositions))
 
   def addGhostAgent(self, agent):
     "Each ghost agent is registered separately and stored (in case they are different)."
