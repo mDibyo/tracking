@@ -314,17 +314,23 @@ class ParticleFilter(InferenceModule):
     belief distribution
     """
     """
-    beliefDistribution = self.getBeliefDistribution()
-    newBeliefs = util.Counter()
-    for oldPos in self.legalPositions:
-      positionDist = self.getPositionDistribution(self.setGhostPosition(gameState, oldPos))
-      for newPos, probability in positionDist.items():
-        newBeliefs[newPos] += probability * beliefDistribution[oldPos]
-    for counter in range(self.numParticles):
-      self.particles[counter] = util.sample(newBeliefs)
-    """
     for counter in range(self.numParticles):
       self.particles[counter] = util.sample(self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[counter])))
+    
+    # print "start elapseTime"
+    newPosDist = util.Counter()
+    for p in self.legalPositions:
+      newPosDist[p] = self.getPositionDistribution(self.setGhostPosition(gameState, p))
+    for counter in range(self.numParticles):
+      # print newPosDist[self.particles[counter]]
+      self.particles[counter] = util.sample(newPosDist[self.particles[counter]])
+    """
+    newPosDist = util.Counter()
+    for counter in range(self.numParticles):
+      p = self.particles[counter]
+      if newPosDist[p] == 0:
+        newPosDist[p] = self.getPositionDistribution(self.setGhostPosition(gameState, p))
+      self.particles[counter] = util.sample(newPosDist[p])
 
   def getBeliefDistribution(self):
     """
@@ -399,10 +405,11 @@ class JointParticleFilter:
         and will produce errors
 
     """
-    self.particles = []
+    print 'start initializeParticles'
     possiblePositions = list(product(self.legalPositions, repeat=self.numGhosts))
-    for counter in range(self.numParticles):
-      self.particles.append(random.choice(possiblePositions))
+    random.shuffle(possiblePositions)
+    self.particles = possiblePositions[:self.numParticles]
+    print 'end initializeParticles'
 
   def addGhostAgent(self, agent):
     "Each ghost agent is registered separately and stored (in case they are different)."
@@ -443,6 +450,14 @@ class JointParticleFilter:
     that performs these three operations for you.
 
     """
+    self.particles
+    emissionModels
+
+
+
+
+
+    print 'start observeState'
     pacmanPosition = gameState.getPacmanPosition()
     noisyDistances = gameState.getNoisyGhostDistances()
     if len(noisyDistances) < self.numGhosts: return
@@ -471,6 +486,7 @@ class JointParticleFilter:
           particle.append(util.sample(allPossibles[ghostIndex]))
         self.particles[counter] = tuple(particle)
 
+    print 'end observeState'
     """
     if noisyDistance == None:
       for counter in range(self.numParticles):
@@ -549,12 +565,14 @@ class JointParticleFilter:
     self.particles = newParticles
 
   def getBeliefDistribution(self):
+    print 'start getBeliefDistribution'
     beliefDistribution = []
     for ghostIndex in range(self.numGhosts):
       distribution = util.Counter()
       for particle in self.particles[ghostIndex]:
         distribution[particle] += 1.0 / self.numParticles
       beliefDistribution.append(distribution)
+    print 'end getBeliefDistribution'
     return beliefDistribution
         
 # One JointInference module is shared globally across instances of MarginalInference
