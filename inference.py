@@ -465,6 +465,40 @@ class JointParticleFilter:
     that performs these three operations for you.
 
     """
+    print 'observeState'
+    pacmanPosition = gameState.getPacmanPosition()
+    noisyDistances = gameState.getNoisyGhostDistances()
+    if len(noisyDistances) < self.numGhosts:
+      return
+    emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
+    beliefDistribution = self.getBeliefDistribution()
+    for ghostIndex in range(self.numGhosts):
+      # if noisyDistances[ghostIndex] == None: 
+      #   print 'ghost', ghostIndex, 'captured'
+      #   for counter in range(self.numParticles):
+      #     self.particles[counter] = self.getParticleWithGhostInJail(self.particles[counter], ghostIndex)
+          # print self.particles[counter]
+      for particle in beliefDistribution:
+        trueDistance = util.manhattanDistance(particle[ghostIndex], pacmanPosition)
+        beliefDistribution[particle] *= emissionModels[ghostIndex][trueDistance]
+    if beliefDistribution.totalCount() == 0:
+      print "initializing..."
+      self.initializeParticles()
+      for ghostIndex in range(self.numGhosts):
+        if noisyDistances[ghostIndex] == None:
+          print 'ghost', ghostIndex, 'captured'
+          for counter in range(self.numParticles):
+            self.particles[counter] = self.getParticleWithGhostInJail(self.particles[counter], ghostIndex)
+    else:
+      beliefDistribution.normalize()
+      # print beliefDistribution
+      for counter in range(self.numParticles):
+        self.particles[counter] = util.sample(beliefDistribution)
+
+
+
+
+    """
     pacmanPosition = gameState.getPacmanPosition()
     noisyDistances = gameState.getNoisyGhostDistances()
     if len(noisyDistances) < self.numGhosts:
@@ -473,20 +507,26 @@ class JointParticleFilter:
     beliefDistribution = self.getBeliefDistribution()
     for ghostIndex in range(self.numGhosts):
       if noisyDistances[ghostIndex] == None:
+        print 'ghost', ghostIndex, 'captured'
         for counter in range(self.numParticles):
           self.particles[counter] = self.getParticleWithGhostInJail(self.particles[counter], ghostIndex)
+          # print self.particles[counter]
       for particle in beliefDistribution:
         trueDistance = util.manhattanDistance(particle[ghostIndex], pacmanPosition)
         beliefDistribution[particle] *= emissionModels[ghostIndex][trueDistance]
     if beliefDistribution.totalCount() == 0:
-      print "initializing..."
+      # print "initializing..."
       self.initializeParticles()
     else:
       beliefDistribution.normalize()
       for counter in range(self.numParticles):
         self.particles[counter] = util.sample(beliefDistribution)
+    """
+    
+
 
     """
+    OLD 
     print 'start observeState'
     pacmanPosition = gameState.getPacmanPosition()
     noisyDistances = gameState.getNoisyGhostDistances()
