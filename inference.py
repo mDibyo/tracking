@@ -279,6 +279,27 @@ class ParticleFilter(InferenceModule):
     You may also want to use util.manhattanDistance to calculate the distance
     between a particle and pacman's position.
     """
+    """
+    noisyDistance = observation
+    if noisyDistance == None:
+      for counter in range(self.numParticles):
+        self.particles[counter] = self.getJailPosition()
+    else:
+      emissionModel = busters.getObservationDistribution(noisyDistance)
+      pacmanPosition = gameState.getPacmanPosition()
+      beliefDistribution = self.getBeliefDistribution()
+      allPossible = util.Counter()
+      for p in self.legalPositions:
+        trueDistance = util.manhattanDistance(p, pacmanPosition)
+        if emissionModel[trueDistance] > 0:
+          allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
+          # new distribution = weight * belief
+      if allPossible.totalCount() == 0:
+        self.initializeUniformly(gameState)
+      else:
+        for counter in range(self.numParticles):
+          self.particles[counter] = util.sample(allPossible)
+    """
     noisyDistance = observation
     if noisyDistance == None:
       for counter in range(self.numParticles):
@@ -394,11 +415,16 @@ class JointParticleFilter:
         and will produce errors
 
     """
-    print 'start initializeParticles'
+    # print 'start initializeParticles', self.numParticles
     possiblePositions = list(product(self.legalPositions, repeat=self.numGhosts))
+    # print len(possiblePositions)
     random.shuffle(possiblePositions)
-    self.particles = possiblePositions[:self.numParticles]
-    print 'end initializeParticles'
+    self.particles = []
+    for counter in range(self.numParticles):
+      self.particles.append(possiblePositions[counter % len(possiblePositions)])
+    # self.particles = possiblePositions[:self.numParticles]
+    # print len(self.particles), self.numParticles
+    # print 'end initializeParticles'
 
   def addGhostAgent(self, agent):
     "Each ghost agent is registered separately and stored (in case they are different)."
@@ -449,14 +475,18 @@ class JointParticleFilter:
       if noisyDistances[ghostIndex] == None:
         for counter in range(self.numParticles):
           self.particles[counter] = self.getParticleWithGhostInJail(self.particles[counter], ghostIndex)
-      else:
-        for p in self.legalPositions:
-          trueDistance = util.manhattanDistance(p, pacmanPosition)
-          if emissionModels[ghostIndex][trueDistance] > 0:
-            beliefDistribution[position] *= emissionModels[ghostIndex][trueDistance]
+      for particle in beliefDistribution:
+        trueDistance = util.manhattanDistance(particle[ghostIndex], pacmanPosition)
+        beliefDistribution[particle] *= emissionModels[ghostIndex][trueDistance]
+    if beliefDistribution.totalCount() == 0:
+      print "initializing..."
+      self.initializeParticles()
+    else:
+      beliefDistribution.normalize()
+      for counter in range(self.numParticles):
+        self.particles[counter] = util.sample(beliefDistribution)
 
-
-
+    """
     print 'start observeState'
     pacmanPosition = gameState.getPacmanPosition()
     noisyDistances = gameState.getNoisyGhostDistances()
@@ -487,6 +517,7 @@ class JointParticleFilter:
         self.particles[counter] = tuple(particle)
 
     print 'end observeState'
+    """
     """
     if noisyDistance == None:
       for counter in range(self.numParticles):
@@ -565,11 +596,13 @@ class JointParticleFilter:
     self.particles = newParticles
 
   def getBeliefDistribution(self):
-    print 'start getBeliefDistribution'
+    # print 'start getBeliefDistribution'
     beliefDistribution = util.Counter()
     for particle in self.particles:
       beliefDistribution[particle] += 1.0 / self.numParticles
-    print 'end getBeliefDistribution'
+    # print 'end getBeliefDistribution'
+    beliefDistribution.normalize()
+    # print beliefDistribution
     return beliefDistribution
         
 # One JointInference module is shared globally across instances of MarginalInference
