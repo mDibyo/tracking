@@ -530,22 +530,6 @@ class JointParticleFilter:
           The ghost agent you are meant to supply is self.ghostAgents[ghostIndex-1],
           but in this project all ghost agents are always the same.
     """
-    """
-    newParticles = []
-    for oldParticle in self.particles:
-      newParticle = list(oldParticle) # A list of ghost positions
-
-      # now loop through and update each entry in newParticle...
-
-      "*** YOUR CODE HERE ***"
-      for ghostIndex in range(self.numGhosts):
-        newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, oldParticle),
-                                                     ghostIndex, self.ghostAgents[ghostIndex])
-        newParticle[ghostIndex] = util.sample(newPosDist)
-      "*** END YOUR CODE HERE ***"
-      newParticles.append(tuple(newParticle))
-    self.particles = newParticles
-    """
     newParticles = []
     newPosDist = {}
     for oldParticle in self.particles:
@@ -560,14 +544,6 @@ class JointParticleFilter:
         newParticle[ghostIndex] = util.sample(newPosDist[oldParticle][ghostIndex])
       newParticles.append(tuple(newParticle))
     self.particles = newParticles
-    """
-    newPosDist = util.Counter()
-    for counter in range(self.numParticles):
-      p = self.particles[counter]
-      if newPosDist[p] == 0:
-        newPosDist[p] = self.getPositionDistribution(self.setGhostPosition(gameState, p))
-      self.particles[counter] = util.sample(newPosDist[p])
-    """
 
   def getBeliefDistribution(self):
     beliefDistribution = util.Counter()

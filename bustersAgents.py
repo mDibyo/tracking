@@ -165,8 +165,7 @@ class GreedyBustersAgent(BustersAgent):
         if prob > highestProb:
           highestProb, mostProbPosition = prob, position
       mostLikelyGhostPositions.append((mostProbPosition,
-                                        self.distancer.getDistance(mostProbPosition, pacmanPosition)))
-    # print mostLikelyGhostPositions
+                                       self.distancer.getDistance(mostProbPosition, pacmanPosition)))
     # Find distance and position of the closest ghost
     leastDistance = float('inf')
     closestPosition = None
@@ -174,25 +173,15 @@ class GreedyBustersAgent(BustersAgent):
       if distance < leastDistance:
         leastDistance = distance
         closestPosition = ghostPosition
-    # print closestPosition, pacmanPosition, leastDistance
     # Find best action
     bestNewDistance = float('inf')
     bestAction = []
     for action in legal:
       successorPosition = Actions.getSuccessor(pacmanPosition, action)
       newDistance = self.distancer.getDistance(closestPosition, successorPosition)
-      # print pacmanPosition, action, successorPosition, newDistance
       if newDistance < bestNewDistance:
         bestNewDistance = newDistance
         bestAction = [action]
       elif newDistance == bestNewDistance:
         bestAction.append(action)
-    # print "======="
-    # print bestAction
-    # print oneAction
     return random.choice(bestAction)
-    # mostLikelyGhostPositions = [reduce(lambda (pos1, prob1), (pos2, prob2): pos1 if prob1 > prob2 else pos2, [item for item in ghost.items]) for ghost in livingGhostPositionDistributions]
-    # Find distance and position of closest ghost
-    # closestGhostPosition = reduce(lambda (pos1, dist1), (pos2, dist2): pos1 if dist1z < dist2 else pos2, map(lambda pos: (pos, self.distancer.getDistance(pos, pacmanPosition)), mostLikelyGhostPositions))
-    # Find best action and return
-    # return reduce(lambda (action1, dist1), (action2, dist2): action1 if dist1 < dist2 else action2, map(lambda action: self.distancer.getDistance(Action.getSuccessor(pacmanPosition, action), closestGhostPosition), legal))
