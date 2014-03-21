@@ -313,7 +313,6 @@ class ParticleFilter(InferenceModule):
         trueDistance = util.manhattanDistance(p, pacmanPosition)
         if emissionModel[trueDistance] > 0:
           allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
-          # new distribution = weight * belief
       if allPossible.totalCount() == 0:
         self.initializeUniformly(gameState)
       else:
@@ -538,16 +537,27 @@ class JointParticleFilter:
       # now loop through and update each entry in newParticle...
 
       "*** YOUR CODE HERE ***"
-
+      for ghostIndex in range(self.numGhosts):
+        newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, oldParticle),
+                                                     ghostIndex, self.ghostAgents[ghostIndex])
+        newParticle[ghostIndex] = util.sample(newPosDist)
       "*** END YOUR CODE HERE ***"
       newParticles.append(tuple(newParticle))
     self.particles = newParticles
+
+    """
+    newPosDist = util.Counter()
+    for counter in range(self.numParticles):
+      p = self.particles[counter]
+      if newPosDist[p] == 0:
+        newPosDist[p] = self.getPositionDistribution(self.setGhostPosition(gameState, p))
+      self.particles[counter] = util.sample(newPosDist[p])
+    """
 
   def getBeliefDistribution(self):
     beliefDistribution = util.Counter()
     for particle in self.particles:
       beliefDistribution[particle] += 1.0 / self.numParticles
-    # beliefDistribution.normalize()
     return beliefDistribution
         
 # One JointInference module is shared globally across instances of MarginalInference
