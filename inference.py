@@ -441,11 +441,19 @@ class JointParticleFilter:
     """
     pacmanPosition = gameState.getPacmanPosition()
     noisyDistances = gameState.getNoisyGhostDistances()
-    if len(noisyDistances) < self.numGhosts: return
+    if len(noisyDistances) < self.numGhosts:
+      return
     emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
     beliefDistribution = self.getBeliefDistribution()
     for ghostIndex in range(self.numGhosts):
-            
+      if noisyDistances[ghostIndex] == None:
+        for counter in range(self.numParticles):
+          self.particles[counter] = self.getParticleWithGhostInJail(self.particles[counter], ghostIndex)
+      else:
+        for p in self.legalPositions:
+          trueDistance = util.manhattanDistance(p, pacmanPosition)
+          if emissionModels[ghostIndex][trueDistance] > 0:
+            beliefDistribution[position] *= emissionModels[ghostIndex][trueDistance]
 
 
 
