@@ -292,6 +292,7 @@ class ParticleFilter(InferenceModule):
         trueDistance = util.manhattanDistance(p, pacmanPosition)
         if emissionModel[trueDistance] > 0:
           allPossible[p] = emissionModel[trueDistance] * beliefDistribution[p]
+          # new distribution = weight * belief
       if allPossible.totalCount() == 0:
         self.initializeUniformly(gameState)
       else:
@@ -312,18 +313,6 @@ class ParticleFilter(InferenceModule):
 
     util.sample(Counter object) is a helper method to generate a sample from a
     belief distribution
-    """
-    """
-    for counter in range(self.numParticles):
-      self.particles[counter] = util.sample(self.getPositionDistribution(self.setGhostPosition(gameState, self.particles[counter])))
-    
-    # print "start elapseTime"
-    newPosDist = util.Counter()
-    for p in self.legalPositions:
-      newPosDist[p] = self.getPositionDistribution(self.setGhostPosition(gameState, p))
-    for counter in range(self.numParticles):
-      # print newPosDist[self.particles[counter]]
-      self.particles[counter] = util.sample(newPosDist[self.particles[counter]])
     """
     newPosDist = util.Counter()
     for counter in range(self.numParticles):
@@ -450,10 +439,13 @@ class JointParticleFilter:
     that performs these three operations for you.
 
     """
-    self.particles
-    emissionModels
-
-
+    pacmanPosition = gameState.getPacmanPosition()
+    noisyDistances = gameState.getNoisyGhostDistances()
+    if len(noisyDistances) < self.numGhosts: return
+    emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
+    beliefDistribution = self.getBeliefDistribution()
+    for ghostIndex in range(self.numGhosts):
+            
 
 
 
@@ -566,12 +558,9 @@ class JointParticleFilter:
 
   def getBeliefDistribution(self):
     print 'start getBeliefDistribution'
-    beliefDistribution = []
-    for ghostIndex in range(self.numGhosts):
-      distribution = util.Counter()
-      for particle in self.particles[ghostIndex]:
-        distribution[particle] += 1.0 / self.numParticles
-      beliefDistribution.append(distribution)
+    beliefDistribution = util.Counter()
+    for particle in self.particles:
+      beliefDistribution[particle] += 1.0 / self.numParticles
     print 'end getBeliefDistribution'
     return beliefDistribution
         
