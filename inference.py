@@ -530,6 +530,7 @@ class JointParticleFilter:
           The ghost agent you are meant to supply is self.ghostAgents[ghostIndex-1],
           but in this project all ghost agents are always the same.
     """
+    """
     newParticles = []
     for oldParticle in self.particles:
       newParticle = list(oldParticle) # A list of ghost positions
@@ -544,7 +545,21 @@ class JointParticleFilter:
       "*** END YOUR CODE HERE ***"
       newParticles.append(tuple(newParticle))
     self.particles = newParticles
-
+    """
+    newParticles = []
+    newPosDist = {}
+    for oldParticle in self.particles:
+      newParticle = list(oldParticle)
+      if oldParticle not in newPosDist.keys():
+        dist = []
+        for ghostIndex in range(self.numGhosts):
+          dist.append(getPositionDistributionForGhost(setGhostPositions(gameState, oldParticle),
+                                                      ghostIndex, self.ghostAgents[ghostIndex]))
+        newPosDist[oldParticle] = dist
+      for ghostIndex in range(self.numGhosts):
+        newParticle[ghostIndex] = util.sample(newPosDist[oldParticle][ghostIndex])
+      newParticles.append(tuple(newParticle))
+    self.particles = newParticles
     """
     newPosDist = util.Counter()
     for counter in range(self.numParticles):
